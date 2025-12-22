@@ -1,0 +1,29 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm ci && npm run build"
+
+[deploy]
+startCommand = "npm run railway:migrate"
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "omade-cravings-api"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "3000"
+
+[services.healthcheck]
+path = "/health"
+interval = 30
+timeout = 10
+retries = 3
+startPeriod = 0
+
+[services.resources]
+memory = 512
+cpu = 0.25
+
+[experimental]
+configVersion = 2

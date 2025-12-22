@@ -1,10 +1,14 @@
 import { Sequelize } from 'sequelize-typescript';
 import dotenv from 'dotenv';
 import { User } from '../models/User';
-import { Restaurant } from '../models/Restaurant';
-import { MenuItem } from '../models/MenuItem';
+import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { OrderItem } from '../models/OrderItem';
+import { Review } from '../models/Review';
+import { LoyaltyPoints } from '../models/LoyaltyPoints';
+import { PromoCode } from '../models/PromoCode';
+import { CustomCakeConfiguration } from '../models/CustomCakeConfiguration';
+import { DeliverySchedule } from '../models/DeliverySchedule';
 
 // Load environment-specific config
 if (process.env.NODE_ENV === 'test') {
@@ -16,20 +20,41 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 // Initialize Sequelize
-export const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
-  dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  models: [User, Restaurant, MenuItem, Order, OrderItem],
-  dialectOptions:
-    process.env.NODE_ENV === 'production'
-      ? {
-          ssl: {
-            require: true,
-            rejectUnauthorized: false,
-          },
-        }
-      : {},
-});
+let sequelize: Sequelize;
+
+if (process.env.NODE_ENV === 'test') {
+  // Use test database for tests
+  const { testSequelize } = require('./testDatabase');
+  sequelize = testSequelize;
+} else {
+  // Use production/development database
+  sequelize = new Sequelize(process.env.DATABASE_URL as string, {
+    dialect: 'postgres',
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    models: [
+      User,
+      Product,
+      Order,
+      OrderItem,
+      Review,
+      LoyaltyPoints,
+      PromoCode,
+      CustomCakeConfiguration,
+      DeliverySchedule,
+    ],
+    dialectOptions:
+      process.env.NODE_ENV === 'production'
+        ? {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : {},
+  });
+}
+
+export { sequelize };
 
 // Test Connection Function
 export const connectDB = async () => {

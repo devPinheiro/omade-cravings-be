@@ -12,11 +12,11 @@ import {
   UpdatedAt,
 } from 'sequelize-typescript';
 import { Order } from './Order';
-import { MenuItem } from './MenuItem';
+import { Product } from './Product';
 
 @Table({
   tableName: 'order_items',
-  timestamps: true,
+  timestamps: false,
 })
 export class OrderItem extends Model {
   @PrimaryKey
@@ -27,12 +27,12 @@ export class OrderItem extends Model {
   @ForeignKey(() => Order)
   @AllowNull(false)
   @Column(DataType.UUID)
-  orderId!: string;
+  order_id!: string;
 
-  @ForeignKey(() => MenuItem)
+  @ForeignKey(() => Product)
   @AllowNull(false)
   @Column(DataType.UUID)
-  menuItemId!: string;
+  product_id!: string;
 
   @AllowNull(false)
   @Default(1)
@@ -41,17 +41,11 @@ export class OrderItem extends Model {
 
   @AllowNull(false)
   @Column(DataType.DECIMAL(8, 2))
-  unitPrice!: number;
+  unit_price!: number;
 
   @AllowNull(false)
   @Column(DataType.DECIMAL(8, 2))
-  totalPrice!: number;
-
-  @Column(DataType.TEXT)
-  specialRequests!: string;
-
-  @Column(DataType.JSON)
-  customizations!: object;
+  subtotal!: number;
 
   @CreatedAt
   createdAt!: Date;
@@ -59,9 +53,9 @@ export class OrderItem extends Model {
   @UpdatedAt
   updatedAt!: Date;
 
-  @BelongsTo(() => Order, 'orderId')
+  @BelongsTo(() => Order, 'order_id')
   order!: Order;
 
-  @BelongsTo(() => MenuItem, 'menuItemId')
-  menuItem!: MenuItem;
+  @BelongsTo(() => Product, 'product_id')
+  product!: Product;
 }

@@ -1,0 +1,533 @@
+components:
+  schemas:
+    # User Models
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        role:
+          type: string
+          enum: [CUSTOMER, STAFF, ADMIN]
+          example: "CUSTOMER"
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+        isVerified:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "SecurePass123!"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+    
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          example: "SecurePass123!"
+    
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            refreshToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # Product Models
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        name:
+          type: string
+          example: "Chocolate Cake"
+        description:
+          type: string
+          example: "Rich chocolate cake with buttercream frosting"
+        price:
+          type: number
+          format: decimal
+          example: 25.99
+        category:
+          type: string
+          enum: [CAKES, PASTRIES, COOKIES, BEVERAGES, CUSTOM_CAKES]
+          example: "CAKES"
+        imageUrl:
+          type: string
+          example: "https://example.com/chocolate-cake.jpg"
+        stock:
+          type: integer
+          example: 50
+        isActive:
+          type: boolean
+          example: true
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["chocolate", "birthday", "sweet"]
+        nutritionInfo:
+          type: object
+          properties:
+            calories:
+              type: integer
+              example: 350
+            allergens:
+              type: array
+              items:
+                type: string
+              example: ["gluten", "dairy", "eggs"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    ProductCreate:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - category
+        - stock
+      properties:
+        name:
+          type: string
+          example: "Chocolate Cake"
+        description:
+          type: string
+          example: "Rich chocolate cake with buttercream frosting"
+        price:
+          type: number
+          format: decimal
+          example: 25.99
+        category:
+          type: string
+          enum: [CAKES, PASTRIES, COOKIES, BEVERAGES, CUSTOM_CAKES]
+          example: "CAKES"
+        imageUrl:
+          type: string
+          example: "https://example.com/chocolate-cake.jpg"
+        stock:
+          type: integer
+          example: 50
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["chocolate", "birthday", "sweet"]
+        nutritionInfo:
+          type: object
+
+    # Cart Models
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        product:
+          $ref: '#/components/schemas/Product'
+        quantity:
+          type: integer
+          example: 2
+        unitPrice:
+          type: number
+          format: decimal
+          example: 25.99
+        totalPrice:
+          type: number
+          format: decimal
+          example: 51.98
+        customCakeConfig:
+          $ref: '#/components/schemas/CustomCakeConfiguration'
+        addedAt:
+          type: string
+          format: date-time
+
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        sessionId:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        totalItems:
+          type: integer
+          example: 3
+        subtotal:
+          type: number
+          format: decimal
+          example: 77.97
+        guestInfo:
+          $ref: '#/components/schemas/GuestInfo'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    GuestInfo:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "guest@example.com"
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+
+    # Custom Cake Models
+    CustomCakeConfiguration:
+      type: object
+      properties:
+        flavor:
+          type: string
+          example: "Chocolate"
+        size:
+          type: string
+          enum: ["6 inch", "8 inch", "10 inch", "12 inch"]
+          example: "8 inch"
+        frosting:
+          type: string
+          example: "Buttercream"
+        message:
+          type: string
+          example: "Happy Birthday!"
+        extraDetails:
+          type: object
+          properties:
+            decorations:
+              type: array
+              items:
+                type: string
+              example: ["Fresh Flowers", "Sprinkles"]
+            layers:
+              type: integer
+              example: 2
+            dietaryOptions:
+              type: array
+              items:
+                type: string
+              example: ["Gluten Free"]
+
+    # Order Models
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderNumber:
+          type: string
+          example: "OMC-2024-001234"
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, IN_PREPARATION, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELLED]
+          example: "PENDING"
+        paymentStatus:
+          type: string
+          enum: [PENDING, PAID, FAILED, REFUNDED]
+          example: "PENDING"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        subtotal:
+          type: number
+          format: decimal
+          example: 51.98
+        tax:
+          type: number
+          format: decimal
+          example: 4.16
+        deliveryFee:
+          type: number
+          format: decimal
+          example: 5.00
+        discount:
+          type: number
+          format: decimal
+          example: 0.00
+        total:
+          type: number
+          format: decimal
+          example: 61.14
+        deliveryInfo:
+          $ref: '#/components/schemas/DeliveryInfo'
+        guestInfo:
+          $ref: '#/components/schemas/GuestInfo'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+          example: "Chocolate Cake"
+        quantity:
+          type: integer
+          example: 2
+        unitPrice:
+          type: number
+          format: decimal
+          example: 25.99
+        totalPrice:
+          type: number
+          format: decimal
+          example: 51.98
+        customCakeConfig:
+          $ref: '#/components/schemas/CustomCakeConfiguration'
+
+    DeliveryInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [DELIVERY, PICKUP]
+          example: "DELIVERY"
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: "123 Main St"
+            city:
+              type: string
+              example: "Anytown"
+            state:
+              type: string
+              example: "CA"
+            zipCode:
+              type: string
+              example: "12345"
+            country:
+              type: string
+              example: "US"
+        scheduledFor:
+          type: string
+          format: date-time
+        instructions:
+          type: string
+          example: "Leave at front door"
+
+    # Review Models
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          example: "Absolutely delicious! Will order again."
+        createdAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            firstName:
+              type: string
+              example: "John"
+            lastName:
+              type: string
+              example: "D."
+
+    # Loyalty Models
+    LoyaltyPoints:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        totalPoints:
+          type: integer
+          example: 150
+        availablePoints:
+          type: integer
+          example: 100
+        lifetimeEarned:
+          type: integer
+          example: 500
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoyaltyTransaction'
+
+    LoyaltyTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [EARNED, REDEEMED, EXPIRED]
+          example: "EARNED"
+        points:
+          type: integer
+          example: 25
+        description:
+          type: string
+          example: "Order #OMC-2024-001234"
+        orderId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # Promo Code Models
+    PromoCode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: "SAVE20"
+        type:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT, FREE_DELIVERY]
+          example: "PERCENTAGE"
+        value:
+          type: number
+          format: decimal
+          example: 20.00
+        minimumOrderAmount:
+          type: number
+          format: decimal
+          example: 50.00
+        maxDiscount:
+          type: number
+          format: decimal
+          example: 10.00
+        usageLimit:
+          type: integer
+          example: 100
+        usageCount:
+          type: integer
+          example: 25
+        validFrom:
+          type: string
+          format: date-time
+        validTo:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+          example: true
+        applicableCategories:
+          type: array
+          items:
+            type: string
+          example: ["CAKES", "PASTRIES"]

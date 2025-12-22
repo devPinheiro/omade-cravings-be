@@ -101,7 +101,7 @@ export class Validator {
         email: 150,
         phoneNumber: 50,
         password: 200,
-        name: 200,
+        name: 1000,
         description: 2000,
         address: 500,
         cuisine: 100,
@@ -147,3 +147,33 @@ export class Validator {
 // Export commonly used validation functions
 export const validateUserRegistration = (data: unknown) =>
   Validator.validate(userRegistrationSchema, data);
+
+// Express middleware for validation
+import { Request, Response, NextFunction } from 'express';
+
+export const validate = (schema: any) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const dataToValidate: any = {};
+      
+      if (schema.fields?.body) {
+        dataToValidate.body = req.body;
+      }
+      if (schema.fields?.params) {
+        dataToValidate.params = req.params;
+      }
+      if (schema.fields?.query) {
+        dataToValidate.query = req.query;
+      }
+
+      await schema.validate(dataToValidate, { abortEarly: false });
+      next();
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: error.errors || [error.message],
+      });
+    }
+  };
+};

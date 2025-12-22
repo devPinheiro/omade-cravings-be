@@ -1,0 +1,93 @@
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Check the health status of the API and its dependencies
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Omade Cravings API is healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-01T00:00:00.000Z"
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /:
+    get:
+      tags:
+        - Health
+      summary: API information
+      description: Get API information and available endpoints overview
+      operationId: getApiInfo
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Welcome to Omade Cravings API v1"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  description:
+                    type: string
+                    example: "Food delivery and restaurant management platform"
+                  endpoints:
+                    type: object
+                    properties:
+                      auth:
+                        type: string
+                        example: "/api/v1/auth"
+                      products:
+                        type: string
+                        example: "/api/v1/products"
+                      cart:
+                        type: string
+                        example: "/api/v1/cart (legacy)"
+                      enhanced_cart:
+                        type: string
+                        example: "/api/v2/cart"
+                      orders:
+                        type: string
+                        example: "/api/v1/orders"
+                      reviews:
+                        type: string
+                        example: "/api/v1/reviews"
+                      loyalty:
+                        type: string
+                        example: "/api/v1/loyalty"
+                      promo:
+                        type: string
+                        example: "/api/v1/promo"
+                      custom_cakes:
+                        type: string
+                        example: "/api/v1/custom-cakes"
+                      notifications:
+                        type: string
+                        example: "/api/v1/notifications"
+                      health:
+                        type: string
+                        example: "/health"

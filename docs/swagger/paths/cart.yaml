@@ -1,0 +1,883 @@
+paths:
+  # Legacy Cart Routes (v1)
+  /api/v1/cart:
+    get:
+      tags:
+        - Cart (Legacy)
+      summary: Get user's cart
+      description: Retrieve authenticated user's cart (legacy endpoint)
+      operationId: getLegacyCart
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Cart retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/cart/items:
+    post:
+      tags:
+        - Cart (Legacy)
+      summary: Add item to cart
+      description: Add a product to user's cart (legacy endpoint)
+      operationId: addLegacyCartItem
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - quantity
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440001"
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 2
+      responses:
+        '200':
+          description: Item added to cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/cart/items/{productId}:
+    patch:
+      tags:
+        - Cart (Legacy)
+      summary: Update cart item quantity
+      description: Update quantity of item in cart (legacy endpoint)
+      operationId: updateLegacyCartItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 3
+      responses:
+        '200':
+          description: Cart item updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Cart item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Cart (Legacy)
+      summary: Remove cart item
+      description: Remove item from cart (legacy endpoint)
+      operationId: removeLegacyCartItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cart item removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Cart item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Enhanced Cart Routes (v2)
+  /api/v2/cart/guest/session:
+    post:
+      tags:
+        - Cart (Enhanced)
+      summary: Create guest session
+      description: Create a new guest cart session for unauthenticated users
+      operationId: createGuestSession
+      responses:
+        '201':
+          description: Guest session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      sessionId:
+                        type: string
+                        example: "guest_sess_123456789"
+                      expiresAt:
+                        type: string
+                        format: date-time
+                      cart:
+                        $ref: '#/components/schemas/Cart'
+
+  /api/v2/cart:
+    get:
+      tags:
+        - Cart (Enhanced)
+      summary: Get cart
+      description: Retrieve cart for authenticated users or guest sessions
+      operationId: getEnhancedCart
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      responses:
+        '200':
+          description: Cart retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          description: Missing session ID for guest user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Cart (Enhanced)
+      summary: Clear cart
+      description: Remove all items from cart
+      operationId: clearCart
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      responses:
+        '200':
+          description: Cart cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Cart cleared successfully"
+
+  /api/v2/cart/count:
+    get:
+      tags:
+        - Cart (Enhanced)
+      summary: Get cart item count
+      description: Get total number of items in cart
+      operationId: getCartItemCount
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      responses:
+        '200':
+          description: Cart count retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                        example: 5
+                      uniqueProducts:
+                        type: integer
+                        example: 3
+
+  /api/v2/cart/items:
+    post:
+      tags:
+        - Cart (Enhanced)
+      summary: Add item to cart
+      description: Add product to cart (supports custom cakes and guests)
+      operationId: addEnhancedCartItem
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - quantity
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440001"
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 2
+                customCakeConfig:
+                  $ref: '#/components/schemas/CustomCakeConfiguration'
+      responses:
+        '200':
+          description: Item added to cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v2/cart/items/{productId}:
+    patch:
+      tags:
+        - Cart (Enhanced)
+      summary: Update cart item
+      description: Update quantity or configuration of cart item
+      operationId: updateEnhancedCartItem
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 3
+                customCakeConfig:
+                  $ref: '#/components/schemas/CustomCakeConfiguration'
+      responses:
+        '200':
+          description: Cart item updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
+          description: Cart item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Cart (Enhanced)
+      summary: Remove cart item
+      description: Remove specific item from cart
+      operationId: removeEnhancedCartItem
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cart item removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '404':
+          description: Cart item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v2/cart/guest/info:
+    patch:
+      tags:
+        - Cart (Enhanced)
+      summary: Update guest information
+      description: Update guest contact information for cart
+      operationId: updateGuestInfo
+      security:
+        - sessionId: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestInfo'
+      responses:
+        '200':
+          description: Guest information updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          description: Validation error or missing session ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/v2/cart/merge:
+    post:
+      tags:
+        - Cart (Enhanced)
+      summary: Merge guest cart with user cart
+      description: Merge guest session cart with authenticated user cart after login
+      operationId: mergeGuestCart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+              properties:
+                sessionId:
+                  type: string
+                  example: "guest_sess_123456789"
+                strategy:
+                  type: string
+                  enum: [merge, replace, keep_existing]
+                  default: merge
+                  example: "merge"
+      responses:
+        '200':
+          description: Carts merged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      cart:
+                        $ref: '#/components/schemas/Cart'
+                      mergeReport:
+                        type: object
+                        properties:
+                          itemsAdded:
+                            type: integer
+                            example: 3
+                          itemsUpdated:
+                            type: integer
+                            example: 1
+                          conflicts:
+                            type: array
+                            items:
+                              type: string
+        '400':
+          description: Invalid session ID or merge strategy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v2/cart/validate:
+    get:
+      tags:
+        - Cart (Enhanced)
+      summary: Validate cart
+      description: Validate cart items against current product data and availability
+      operationId: validateCart
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      responses:
+        '200':
+          description: Cart validation completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      isValid:
+                        type: boolean
+                        example: true
+                      issues:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            productId:
+                              type: string
+                              format: uuid
+                            issue:
+                              type: string
+                              enum: [out_of_stock, price_changed, product_unavailable]
+                            currentPrice:
+                              type: number
+                              format: decimal
+                            cartPrice:
+                              type: number
+                              format: decimal
+                            availableStock:
+                              type: integer
+                      cart:
+                        $ref: '#/components/schemas/Cart'
+
+  /api/v2/cart/refresh:
+    post:
+      tags:
+        - Cart (Enhanced)
+      summary: Refresh cart data
+      description: Update cart with latest prices and product availability
+      operationId: refreshCart
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      responses:
+        '200':
+          description: Cart refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      cart:
+                        $ref: '#/components/schemas/Cart'
+                      changes:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            productId:
+                              type: string
+                              format: uuid
+                            changeType:
+                              type: string
+                              enum: [price_update, stock_update, removed]
+                            oldValue:
+                              type: string
+                            newValue:
+                              type: string
+
+  /api/v2/cart/checkout:
+    post:
+      tags:
+        - Cart (Enhanced)
+      summary: Initiate checkout
+      description: Validate cart and prepare for order creation
+      operationId: initiateCheckout
+      security:
+        - bearerAuth: []
+        - sessionId: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deliveryType:
+                  type: string
+                  enum: [delivery, pickup]
+                  example: "delivery"
+                promoCode:
+                  type: string
+                  example: "SAVE20"
+                deliveryAddress:
+                  type: object
+                  properties:
+                    street:
+                      type: string
+                    city:
+                      type: string
+                    state:
+                      type: string
+                    zipCode:
+                      type: string
+                    country:
+                      type: string
+                scheduledFor:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Checkout initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      checkoutId:
+                        type: string
+                        example: "checkout_123456789"
+                      cart:
+                        $ref: '#/components/schemas/Cart'
+                      pricing:
+                        type: object
+                        properties:
+                          subtotal:
+                            type: number
+                            format: decimal
+                          tax:
+                            type: number
+                            format: decimal
+                          deliveryFee:
+                            type: number
+                            format: decimal
+                          discount:
+                            type: number
+                            format: decimal
+                          total:
+                            type: number
+                            format: decimal
+                      validation:
+                        type: object
+                        properties:
+                          isValid:
+                            type: boolean
+                          issues:
+                            type: array
+                            items:
+                              type: string
+        '400':
+          description: Cart validation failed or invalid checkout data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Custom Cake Helper Routes
+  /api/v2/cart/custom-cake/options:
+    get:
+      tags:
+        - Cart (Enhanced)
+      summary: Get custom cake options
+      description: Get available options for custom cake configuration
+      operationId: getCustomCakeOptions
+      responses:
+        '200':
+          description: Custom cake options retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      flavors:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Vanilla", "Chocolate", "Red Velvet"]
+                      sizes:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: "8 inch"
+                            serves:
+                              type: string
+                              example: "8-10 people"
+                            priceMultiplier:
+                              type: number
+                              format: decimal
+                              example: 1.5
+                      frostings:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Buttercream", "Cream Cheese", "Chocolate Ganache"]
+                      decorations:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Fresh Flowers", "Sprinkles", "Custom Writing"]
+                      dietaryOptions:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Gluten Free", "Vegan", "Sugar Free"]
+
+  /api/v2/cart/custom-cake/calculate-price:
+    post:
+      tags:
+        - Cart (Enhanced)
+      summary: Calculate custom cake price
+      description: Calculate pricing for custom cake configuration
+      operationId: calculateCustomCakePrice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+                - customCakeConfig
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 1
+                customCakeConfig:
+                  $ref: '#/components/schemas/CustomCakeConfiguration'
+      responses:
+        '200':
+          description: Price calculated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      unitPrice:
+                        type: number
+                        format: decimal
+                        example: 42.50
+                      totalPrice:
+                        type: number
+                        format: decimal
+                        example: 42.50
+                      priceBreakdown:
+                        type: object
+                        properties:
+                          basePrice:
+                            type: number
+                            format: decimal
+                            example: 25.00
+                          sizeMultiplier:
+                            type: number
+                            format: decimal
+                            example: 1.5
+                          additionalCosts:
+                            type: number
+                            format: decimal
+                            example: 5.00
+                          quantity:
+                            type: integer
+                            example: 1
+        '400':
+          description: Invalid configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'

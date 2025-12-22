@@ -13,8 +13,8 @@ import {
 
 export enum UserRole {
   CUSTOMER = 'customer',
-  RESTAURANT_OWNER = 'restaurant_owner',
-  DELIVERY_PARTNER = 'delivery_partner',
+  RIDER = 'rider',
+  STAFF = 'staff',
   ADMIN = 'admin',
 }
 
@@ -33,35 +33,27 @@ export class User extends Model {
   @Column(DataType.STRING)
   email!: string;
 
-  @AllowNull(false)
-  @Column(DataType.STRING)
-  password!: string;
 
   @AllowNull(false)
   @Column(DataType.ENUM(...Object.values(UserRole)))
   role!: UserRole;
 
-  @Unique
   @AllowNull(false)
   @Column(DataType.STRING)
-  phoneNumber!: string;
-
-  @AllowNull(false)
-  @Column(DataType.STRING)
-  firstName!: string;
+  name!: string;
 
   @AllowNull(false)
   @Column(DataType.STRING)
-  lastName!: string;
+  password_hash!: string;
 
   @Column(DataType.STRING)
-  address!: string;
+  phone!: string;
 
-  @Column(DataType.DECIMAL(10, 8))
-  latitude!: number;
+  @Column(DataType.STRING)
+  avatar_url!: string;
 
-  @Column(DataType.DECIMAL(11, 8))
-  longitude!: number;
+  @Column(DataType.ENUM('google', 'apple', 'facebook'))
+  social_provider!: string;
 
   @CreatedAt
   createdAt!: Date;

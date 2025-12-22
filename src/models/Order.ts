@@ -13,23 +13,31 @@ import {
   UpdatedAt,
 } from 'sequelize-typescript';
 import { User } from './User';
-import { Restaurant } from './Restaurant';
 import { OrderItem } from './OrderItem';
+import { CustomCakeConfiguration } from './CustomCakeConfiguration';
 
 export enum OrderStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
   PREPARING = 'preparing',
-  READY_FOR_PICKUP = 'ready_for_pickup',
-  OUT_FOR_DELIVERY = 'out_for_delivery',
-  DELIVERED = 'delivered',
+  READY = 'ready',
+  PICKED_UP = 'picked_up',
   CANCELLED = 'cancelled',
-  REFUNDED = 'refunded',
+  NO_SHOW = 'no_show',
+}
+
+export enum PaymentMethod {
+  CASH = 'cash',
+  CARD_ON_PICKUP = 'card_on_pickup',
+  BANK_TRANSFER = 'bank_transfer',
+  MANUAL_ENTRY = 'manual_entry',
 }
 
 export enum PaymentStatus {
   PENDING = 'pending',
-  PAID = 'paid',
+  MANUAL_CONFIRMED = 'manual_confirmed',
+  PAID_ON_PICKUP = 'paid_on_pickup',
+  BANK_TRANSFER_RECEIVED = 'bank_transfer_received',
   FAILED = 'failed',
   REFUNDED = 'refunded',
 }
@@ -45,18 +53,18 @@ export class Order extends Model {
   id!: string;
 
   @ForeignKey(() => User)
-  @AllowNull(false)
   @Column(DataType.UUID)
-  customerId!: string;
+  user_id!: string;
 
-  @ForeignKey(() => Restaurant)
-  @AllowNull(false)
-  @Column(DataType.UUID)
-  restaurantId!: string;
+  // Guest user fields (for unauthenticated orders)
+  @Column(DataType.STRING)
+  guest_email!: string;
 
-  @ForeignKey(() => User)
-  @Column(DataType.UUID)
-  deliveryPartnerId!: string;
+  @Column(DataType.STRING)
+  guest_phone!: string;
+
+  @Column(DataType.STRING)
+  guest_name!: string;
 
   @AllowNull(false)
   @Default(OrderStatus.PENDING)
@@ -66,55 +74,43 @@ export class Order extends Model {
   @AllowNull(false)
   @Default(PaymentStatus.PENDING)
   @Column(DataType.ENUM(...Object.values(PaymentStatus)))
-  paymentStatus!: PaymentStatus;
+  payment_status!: PaymentStatus;
 
   @AllowNull(false)
-  @Column(DataType.DECIMAL(8, 2))
-  subtotal!: number;
+  @Default(PaymentMethod.CASH)
+  @Column(DataType.ENUM(...Object.values(PaymentMethod)))
+  payment_method!: PaymentMethod;
 
-  @AllowNull(false)
-  @Column(DataType.DECIMAL(5, 2))
-  deliveryFee!: number;
-
-  @Default(0)
-  @Column(DataType.DECIMAL(5, 2))
-  tip!: number;
-
-  @Default(0)
-  @Column(DataType.DECIMAL(5, 2))
-  tax!: number;
-
-  @AllowNull(false)
-  @Column(DataType.DECIMAL(8, 2))
-  totalAmount!: number;
-
-  @AllowNull(false)
   @Column(DataType.STRING)
-  deliveryAddress!: string;
+  payment_reference!: string;
 
-  @Column(DataType.DECIMAL(10, 8))
-  deliveryLatitude!: number;
+  @AllowNull(false)
+  @Column(DataType.DECIMAL(8, 2))
+  total_amount!: number;
 
-  @Column(DataType.DECIMAL(11, 8))
-  deliveryLongitude!: number;
+  @Column(DataType.DECIMAL(8, 2))
+  discount_amount!: number;
+
+  @Column(DataType.STRING)
+  promo_code!: string;
+
+  // Pickup information
+  @Column(DataType.TEXT)
+  pickup_instructions!: string;
+
+  @Column(DataType.DATEONLY)
+  preferred_pickup_date!: Date;
+
+  @Column(DataType.STRING)
+  preferred_pickup_time!: string;
+
+  // Order tracking
+  @Column(DataType.STRING)
+  order_number!: string;
 
   @Column(DataType.TEXT)
-  specialInstructions!: string;
+  staff_notes!: string;
 
-  @Column(DataType.INTEGER)
-  estimatedDeliveryTime!: number;
-
-  @Column(DataType.DATE)
-  confirmedAt!: Date;
-
-  @Column(DataType.DATE)
-  deliveredAt!: Date;
-
-  @Column(DataType.DATE)
-  cancelledAt!: Date;
-
-  @Column(DataType.TEXT)
-  cancellationReason!: string;
 
   @CreatedAt
   createdAt!: Date;
@@ -122,15 +118,33 @@ export class Order extends Model {
   @UpdatedAt
   updatedAt!: Date;
 
-  @BelongsTo(() => User, 'customerId')
-  customer!: User;
+  @BelongsTo(() => User, 'user_id')
+  user!: User;
 
-  @BelongsTo(() => Restaurant, 'restaurantId')
-  restaurant!: Restaurant;
+  // Helper method to check if order is from guest
+  get isGuestOrder(): boolean {
+    return !this.user_id && !!(this.guest_email || this.guest_phone);
+  }
 
-  @BelongsTo(() => User, 'deliveryPartnerId')
-  deliveryPartner!: User;
+  // Helper method to get customer info
+  get customerInfo(): { name: string; email?: string; phone?: string } {
+    if (this.isGuestOrder) {
+      return {
+        name: this.guest_name || 'Guest Customer',
+        email: this.guest_email,
+        phone: this.guest_phone,
+      };
+    }
+    return {
+      name: this.user?.name || 'Unknown',
+      email: this.user?.email,
+      phone: this.user?.phone,
+    };
+  }
 
   @HasMany(() => OrderItem)
   orderItems!: OrderItem[];
+
+  @HasMany(() => CustomCakeConfiguration)
+  customCakeConfigurations!: CustomCakeConfiguration[];
 }

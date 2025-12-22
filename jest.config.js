@@ -14,6 +14,10 @@ module.exports = {
   globalSetup: '<rootDir>/tests/globalSetup.ts',
   // Run tests sequentially to avoid database concurrency issues
   maxWorkers: 1,
+  // Transform ES modules from node_modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)',
+  ],
   // Path mapping for module resolution
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -21,5 +25,6 @@ module.exports = {
     '^@domains/(.*)$': '<rootDir>/src/domains/$1',
     '^@models/(.*)$': '<rootDir>/src/models/$1',
     '^@config/(.*)$': '<rootDir>/src/config/$1',
+    '^uuid$': '<rootDir>/__mocks__/uuid',
   },
 };

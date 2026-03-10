@@ -1,14 +1,8 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { NotificationContext, NotificationResult } from '../types/notificationTypes';
 
 export interface EmailConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
+  apiKey: string;
   from: {
     name: string;
     email: string;
@@ -16,31 +10,20 @@ export interface EmailConfig {
 }
 
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
   private config: EmailConfig;
 
   constructor(config?: EmailConfig) {
     this.config = config || this.getDefaultConfig();
-    this.transporter = nodemailer.createTransport({
-      host: this.config.host,
-      port: this.config.port,
-      secure: this.config.secure,
-      auth: this.config.auth,
-    });
+    this.resend = new Resend(this.config.apiKey);
   }
 
   private getDefaultConfig(): EmailConfig {
     return {
-      host: process.env.SMTP_HOST || 'localhost',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER || 'test@omadecravings.com',
-        pass: process.env.SMTP_PASS || 'password',
-      },
+      apiKey: process.env.RESEND_API_KEY || '',
       from: {
-        name: process.env.SMTP_FROM_NAME || 'Omade Cravings',
-        email: process.env.SMTP_FROM_EMAIL || 'noreply@omadecravings.com',
+        name: process.env.RESEND_FROM_NAME || process.env.SMTP_FROM_NAME || 'Omade Cravings',
+        email: process.env.RESEND_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || 'onboarding@resend.dev',
       },
     };
   }
@@ -60,24 +43,39 @@ export class EmailService {
     }>
   ): Promise<NotificationResult> {
     try {
-      // Render template with context
       const htmlContent = this.renderTemplate(template, context);
       const textContent = this.stripHtml(htmlContent);
+      const from = `${this.config.from.name} <${this.config.from.email}>`;
 
-      const mailOptions = {
-        from: `${this.config.from.name} <${this.config.from.email}>`,
-        to,
+      const resendAttachments = attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+      }));
+
+      const { data, error } = await this.resend.emails.send({
+        from,
+        to: [to],
         subject: this.renderTemplate(subject, context),
-        text: textContent,
         html: htmlContent,
-        attachments,
-      };
+        text: textContent,
+        attachments: resendAttachments,
+      });
 
-      const result = await this.transporter.sendMail(mailOptions);
+      if (error) {
+        console.error('Email sending failed:', error);
+        return {
+          success: false,
+          error: error.message,
+          delivery_info: {
+            email_sent: false,
+            email_error: error.message,
+          },
+        };
+      }
 
       return {
         success: true,
-        message_id: result.messageId,
+        message_id: data?.id ?? undefined,
         delivery_info: {
           email_sent: true,
         },
@@ -183,7 +181,7 @@ export class EmailService {
     rendered = rendered.replace(/\{\{store_phone\}\}/g, context.store_info.phone);
     rendered = rendered.replace(/\{\{store_address\}\}/g, context.store_info.address);
     rendered = rendered.replace(/\{\{store_hours\}\}/g, context.store_info.hours);
-    
+
     // Replace payment-related variables
     rendered = rendered.replace(/\{\{payment_method\}\}/g, context.additional_data?.payment_method || 'N/A');
     rendered = rendered.replace(/\{\{payment_reference\}\}/g, context.additional_data?.payment_reference || 'N/A');
@@ -499,15 +497,13 @@ export class EmailService {
   }
 
   /**
-   * Test connection
+   * Test connection (Resend uses API key; we verify it is configured)
    */
   async testConnection(): Promise<boolean> {
-    try {
-      await this.transporter.verify();
-      return true;
-    } catch (error) {
-      console.error('Email service connection test failed:', error);
+    if (!this.config.apiKey) {
+      console.error('Email service: RESEND_API_KEY is not set');
       return false;
     }
+    return true;
   }
 }

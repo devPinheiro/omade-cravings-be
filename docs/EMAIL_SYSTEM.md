@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Omade Cravings API includes a comprehensive email notification system that automatically sends beautifully formatted emails to customers throughout their order lifecycle. The system is built with Nodemailer and provides reusable, template-based email services.
+The Omade Cravings API includes a comprehensive email notification system that automatically sends beautifully formatted emails to customers throughout their order lifecycle. The system uses [Resend](https://resend.com) and provides reusable, template-based email services.
 
 ## Features
 
@@ -11,7 +11,7 @@ The Omade Cravings API includes a comprehensive email notification system that a
 - ✅ **Beautiful HTML Templates**: Responsive email designs with store branding
 - ✅ **Template Variables**: Dynamic content based on order data
 - ✅ **Error Handling**: Robust error handling that doesn't break order processing
-- ✅ **Configurable SMTP**: Easy setup with any SMTP provider
+- ✅ **Resend**: Simple API-based email delivery with high deliverability
 
 ## Email Types
 
@@ -44,50 +44,25 @@ The Omade Cravings API includes a comprehensive email notification system that a
 ### Environment Variables
 
 ```bash
-# SMTP Configuration
-SMTP_HOST=your-smtp-server.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@domain.com
-SMTP_PASS=your-app-password
+# Resend (https://resend.com)
+RESEND_API_KEY=re_your-api-key
+RESEND_FROM_EMAIL=noreply@yourdomain.com   # Use a verified domain in production
+RESEND_FROM_NAME=Omade Cravings
 
-# From Address
-SMTP_FROM_EMAIL=noreply@omadecravings.com
-SMTP_FROM_NAME=Omade Cravings
+# For testing only, you can use Resend's test sender:
+# RESEND_FROM_EMAIL=onboarding@resend.dev
 
 # Notification Controls
 NOTIFICATIONS_ENABLED=true
 EMAIL_NOTIFICATIONS_ENABLED=true
 ```
 
-### Popular SMTP Providers
+### Resend Setup
 
-#### Gmail
-```bash
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password  # Use App Password, not regular password
-```
-
-#### SendGrid
-```bash
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=apikey
-SMTP_PASS=your-sendgrid-api-key
-```
-
-#### Mailgun
-```bash
-SMTP_HOST=smtp.mailgun.org
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-mailgun-username
-SMTP_PASS=your-mailgun-password
-```
+1. Create an account at [resend.com](https://resend.com)
+2. Create an API key in the [Resend Dashboard](https://resend.com/api-keys)
+3. Verify your domain at [resend.com/domains](https://resend.com/domains) for production (required for custom `from` address)
+4. Set `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `RESEND_FROM_NAME` in your environment
 
 ## Usage
 

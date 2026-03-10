@@ -19,6 +19,7 @@ import { orderRoutes } from './domains/order/routes/orderRoutes';
 import { customCakeRoutes } from './domains/custom-cake/routes/customCakeRoutes';
 import { notificationRoutes } from './domains/notifications/routes/notificationRoutes';
 import { customerRoutes } from './domains/customers/routes/customerRoutes';
+import { newsletterRoutes } from './domains/newsletter/routes/newsletterRoutes';
 
 const app: Application = express();
 
@@ -59,6 +60,7 @@ app.get('/', (req: Request, res: Response) => {
       custom_cakes: '/api/v1/custom-cakes',
       notifications: '/api/v1/notifications',
       customers: '/api/v1/customers',
+      newsletter: '/api/v1/newsletter',
       cloudinary: '/api/cloudinary',
       health: '/health',
     },
@@ -78,6 +80,7 @@ app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/custom-cakes', customCakeRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/customers', customerRoutes);
+app.use('/api/v1/newsletter', newsletterRoutes);
 
 // TODO: Implement remaining routes
 // app.use('/api/v1/delivery', deliveryRoutes);

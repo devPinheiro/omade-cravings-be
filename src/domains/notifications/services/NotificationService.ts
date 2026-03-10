@@ -340,8 +340,8 @@ export class NotificationService {
       enabled: process.env.NOTIFICATIONS_ENABLED !== 'false',
       email_enabled: process.env.EMAIL_NOTIFICATIONS_ENABLED !== 'false',
       sms_enabled: process.env.SMS_NOTIFICATIONS_ENABLED !== 'false',
-      default_from_email: process.env.SMTP_FROM_EMAIL || 'noreply@omadecravings.com',
-      default_from_name: process.env.SMTP_FROM_NAME || 'Omade Cravings',
+      default_from_email: process.env.RESEND_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || 'noreply@omadecravings.com',
+      default_from_name: process.env.RESEND_FROM_NAME || process.env.SMTP_FROM_NAME || 'Omade Cravings',
       default_sms_sender: process.env.SMS_FROM_NUMBER || '+1234567890',
       retry_attempts: parseInt(process.env.NOTIFICATION_RETRY_ATTEMPTS || '3'),
       retry_delay_minutes: [1, 5, 15], // Retry after 1min, 5min, 15min

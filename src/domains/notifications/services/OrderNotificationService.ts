@@ -1,10 +1,11 @@
-import { NotificationService } from './NotificationService';
-import { Order, OrderStatus, PaymentStatus } from '../../../models/Order';
 import {
-  NotificationRecipient,
   NotificationContext,
   NotificationEvent,
+  NotificationRecipient,
 } from '../types/notificationTypes';
+import { Order, OrderStatus, PaymentStatus } from '../../../models/Order';
+
+import { NotificationService } from './NotificationService';
 
 export class OrderNotificationService {
   private notificationService: NotificationService;
@@ -150,38 +151,64 @@ export class OrderNotificationService {
   }
 
   /**
-   * Build notification recipient from order
+   * Build notification recipient from order (guest or authenticated user)
    */
   private buildRecipient(order: Order): NotificationRecipient {
+    const user = (order as Order & { user?: { email?: string; phone?: string; name?: string } }).user;
     return {
-      email: order.guest_email || undefined,
-      phone: order.guest_phone || undefined,
-      name: order.guest_name || 'Customer',
+      email: order.guest_email || user?.email || undefined,
+      phone: order.guest_phone || user?.phone || undefined,
+      name: order.guest_name || user?.name || 'Customer',
     };
   }
 
   /**
-   * Build notification context from order
+   * Build notification context from order (with real order items)
    */
   private async buildNotificationContext(order: Order): Promise<NotificationContext> {
-    // In a real implementation, you would fetch order items with product details
-    // For now, we'll create a basic context
-    
-    const items = [
-      {
-        name: 'Custom Cake', // This would be fetched from order items
-        quantity: 1,
-        is_custom: true,
-        custom_details: 'Vanilla cake with buttercream frosting',
-      },
-    ];
+    const orderWithItems = order as Order & {
+      orderItems?: Array<{ quantity: number; product?: { name: string }; product_id?: string }>;
+      customCakeConfigurations?: Array<{ flavor?: string; size?: string; message?: string }>;
+    };
+    const user = (order as Order & { user?: { name?: string } }).user;
 
-    return {
+    type ContextItem = NotificationContext['items'][number];
+    const items: ContextItem[] =
+      orderWithItems.orderItems?.map((oi): ContextItem => ({
+        name: oi.product?.name ?? 'Item',
+        quantity: oi.quantity,
+        is_custom: false,
+        custom_details: undefined,
+      })) ?? [];
+
+    // If order has custom cake configs, append a summary line
+    const customConfigs = orderWithItems.customCakeConfigurations;
+    if (customConfigs?.length) {
+      for (const c of customConfigs) {
+        items.push({
+          name: 'Custom Cake',
+          quantity: 1,
+          is_custom: true,
+          custom_details: [c.flavor, c.size, c.message].filter(Boolean).join(', ') || 'Custom cake',
+        });
+      }
+    }
+
+    if (items.length === 0) {
+      items.push({ name: 'Order items', quantity: 1, is_custom: false, custom_details: undefined });
+    }
+
+    const pickupDate =
+      order.preferred_pickup_date instanceof Date
+        ? order.preferred_pickup_date.toISOString().split('T')[0]
+        : (order.preferred_pickup_date as string)?.toString?.()?.split?.('T')?.[0];
+
+    const context: NotificationContext = {
       order_id: order.id,
       order_number: order.order_number,
-      customer_name: order.guest_name || 'Customer',
+      customer_name: order.guest_name || user?.name || 'Customer',
       total_amount: parseFloat(order.total_amount.toString()),
-      pickup_date: order.preferred_pickup_date?.toISOString().split('T')[0],
+      pickup_date: pickupDate,
       pickup_time: order.preferred_pickup_time || undefined,
       pickup_instructions: order.pickup_instructions || undefined,
       items,
@@ -189,9 +216,10 @@ export class OrderNotificationService {
         name: 'Omade Cravings',
         phone: '+1 (555) 123-4567',
         address: '123 Baker Street, Sweet City, SC 12345',
-        hours: 'Mon-Sat: 8AM-8PM, Sun: 10AM-6PM',
+        hours: 'Mon-Sat: 8AM-8PM',
       },
     };
+    return context;
   }
 
   /**

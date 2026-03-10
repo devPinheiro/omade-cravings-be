@@ -8,6 +8,7 @@ import { LoyaltyPoints } from '../models/LoyaltyPoints';
 import { PromoCode } from '../models/PromoCode';
 import { CustomCakeConfiguration } from '../models/CustomCakeConfiguration';
 import { DeliverySchedule } from '../models/DeliverySchedule';
+import { NewsletterSubscriber } from '../models/NewsletterSubscriber';
 
 // Initialize Sequelize (deferred until connectDB is called)
 let _sequelize: Sequelize;
@@ -38,6 +39,7 @@ const initializeSequelize = () => {
         PromoCode,
         CustomCakeConfiguration,
         DeliverySchedule,
+        NewsletterSubscriber,
       ],
       dialectOptions:
         process.env.NODE_ENV === 'production'

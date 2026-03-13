@@ -40,8 +40,12 @@ export class OrderNotificationService {
 
         case OrderStatus.READY:
           if (previousStatus !== OrderStatus.READY) {
-            await this.notificationService.sendOrderReady(recipient, context);
-            
+            // Notify customer (email + SMS if enabled) when order is ready for pickup
+            if (recipient.email) {
+              await this.notificationService.sendOrderReady(recipient, context);
+            } else {
+              console.warn(`Order ${order.order_number}: cannot send "order ready" notification — no customer email`);
+            }
             // Schedule pickup reminder for later
             await this.schedulePickupReminder(order, recipient, context);
           }
@@ -89,7 +93,10 @@ export class OrderNotificationService {
         case PaymentStatus.MANUAL_CONFIRMED:
         case PaymentStatus.BANK_TRANSFER_RECEIVED:
           if (previousPaymentStatus !== order.payment_status) {
+            // Email customer: payment confirmed + order summary
             await this.notificationService.sendPaymentConfirmation(recipient, context);
+            // Email admin: new order notification
+            await this.notificationService.sendNewOrderNotificationToAdmin(context);
           }
           break;
 

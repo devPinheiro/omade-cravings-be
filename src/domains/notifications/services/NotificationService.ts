@@ -141,6 +141,26 @@ export class NotificationService {
     });
   }
 
+  /** Admin email for new order notifications (default: hello@omadecravings.com) */
+  private static readonly ADMIN_EMAIL =
+    process.env.ADMIN_EMAIL || 'hello@omadecravings.com';
+
+  /**
+   * Send new order notification to admin (e.g. after payment verification)
+   */
+  async sendNewOrderNotificationToAdmin(
+    context: NotificationContext
+  ): Promise<NotificationResult> {
+    if (!this.settings.enabled || !this.settings.email_enabled) {
+      return { success: false, error: 'Notifications are disabled' };
+    }
+    const contextWithStore = this.enrichContext(context);
+    return this.emailService.sendNewOrderNotificationToAdmin(
+      NotificationService.ADMIN_EMAIL,
+      contextWithStore
+    );
+  }
+
   /**
    * Send pickup reminder notification
    */

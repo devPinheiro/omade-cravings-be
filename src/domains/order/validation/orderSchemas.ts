@@ -146,27 +146,15 @@ export const createGuestOrderSchema = yup.object({
   ),
 });
 
+/** Only "ready for pickup" is allowed when updating order status (staff action) */
+const READY_FOR_PICKUP_STATUS = OrderStatus.READY;
+
 export const updateOrderStatusSchema = yup.object({
   body: yup.object({
     status: yup
       .string()
-      .oneOf(Object.values(OrderStatus), 'Invalid order status')
-      .optional(),
-    payment_status: yup
-      .string()
-      .oneOf(Object.values(PaymentStatus), 'Invalid payment status')
-      .optional(),
-    payment_method: yup
-      .string()
-      .oneOf(Object.values(PaymentMethod), 'Invalid payment method')
-      .optional(),
-    payment_reference: yup.string().max(200, 'Payment reference too long').optional(),
-    pickup_instructions: yup.string().max(500, 'Pickup instructions too long').optional(),
-    preferred_pickup_date: yup.date().optional(),
-    preferred_pickup_time: yup
-      .string()
-      .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)')
-      .optional(),
+      .oneOf([READY_FOR_PICKUP_STATUS], 'Only "ready for pickup" status updates are allowed')
+      .required('Status is required'),
     staff_notes: yup.string().max(1000, 'Staff notes too long').optional(),
   }),
 });

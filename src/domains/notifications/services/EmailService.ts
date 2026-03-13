@@ -166,6 +166,18 @@ export class EmailService {
   }
 
   /**
+   * Send new order notification to admin (e.g. after payment verification)
+   */
+  async sendNewOrderNotificationToAdmin(
+    email: string,
+    context: NotificationContext
+  ): Promise<NotificationResult> {
+    const subject = 'New Order Received - Order #{{order_number}}';
+    const template = this.getNewOrderAdminTemplate();
+    return this.sendEmail(email, subject, template, context);
+  }
+
+  /**
    * Render template with context variables
    */
   private renderTemplate(template: string, context: NotificationContext): string {
@@ -418,6 +430,44 @@ export class EmailService {
           ${this.getStoreInfoSection()}
           
           <p>Thank you for your payment and for choosing {{store_name}}!</p>
+        </div>
+        
+        ${this.getFooterSection()}
+      </div>
+    `;
+  }
+
+  /**
+   * New order notification to admin (order summary for staff)
+   */
+  private getNewOrderAdminTemplate(): string {
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #2c3e50; color: white; padding: 20px; text-align: center;">
+          <h1>{{store_name}}</h1>
+          <h2>📦 New Order Received</h2>
+        </div>
+        
+        <div style="padding: 20px;">
+          <p>A new order has been placed and payment has been confirmed.</p>
+          
+          <div style="background-color: #ecf0f1; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #2c3e50;">
+            <h3>Order Details</h3>
+            <p><strong>Order Number:</strong> {{order_number}}</p>
+            <p><strong>Customer:</strong> {{customer_name}}</p>
+            <p><strong>Total Amount:</strong> {{total_amount}}</p>
+            <p><strong>Payment Method:</strong> {{payment_method}}</p>
+            <p><strong>Payment Reference:</strong> {{payment_reference}}</p>
+            <p><strong>Pickup Date:</strong> {{pickup_date}}</p>
+            <p><strong>Pickup Time:</strong> {{pickup_time}}</p>
+          </div>
+          
+          <div style="margin: 20px 0;">
+            <h3>Items</h3>
+            <ul>{{items_list}}</ul>
+          </div>
+          
+          <p style="color: #7f8c8d; font-size: 12px;">This is an automated notification from {{store_name}}.</p>
         </div>
         
         ${this.getFooterSection()}
